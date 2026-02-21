@@ -411,7 +411,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
                   const product = menu?.categories.flatMap((c) => c.products).find((p) => p.id === item.productId) as MenuProduct | undefined;
                   const defaultIds = new Set(product?.defaultIngredientIds ?? []);
                   const addableNames = new Map(product?.allAddableIngredients?.map((a) => [a.id, a.name]) ?? []);
-                  const removableNames = new Map(product?.defaultRemovableIngredients?.map((r) => [r.id, r.name]) ?? []);
+                  const removableNames = new Map((product as MenuProduct | undefined)?.defaultRemovableIngredients?.map((r) => [r.id, r.name]) ?? []);
                   const added = item.addedIngredientIds ?? [];
                   const removed = item.removedIngredientIds ?? [];
                   const removedNames = removed.map((id) => removableNames.get(id) ?? "—");
