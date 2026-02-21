@@ -413,7 +413,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
               <p className="mb-2 text-sm font-medium">Riepilogo ordine</p>
               <ul className="space-y-1 text-sm text-muted-foreground">
                 {cart.map((item, idx) => {
-                  const product = menu?.categories.flatMap((c) => c.products).find((p) => p.id === item.productId);
+                  const product: MenuProduct | undefined = menu?.categories.flatMap((c) => c.products).find((p) => p.id === item.productId);
                   const defaultIds = new Set(product?.defaultIngredientIds ?? []);
                   const addableNames = new Map(product?.allAddableIngredients?.map((a) => [a.id, a.name]) ?? []);
                   const removableNames = getRemovableNamesMap(product);
