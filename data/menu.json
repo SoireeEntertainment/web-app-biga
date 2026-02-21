@@ -1,0 +1,124 @@
+{
+  "restaurant": {
+    "name": "Biga Pizzeria",
+    "slug": "biga-villanova"
+  },
+  "categories": [
+    {
+      "name": "la novità",
+      "sortOrder": 0,
+      "products": [
+        {
+          "name": "Pizza Novità",
+          "description": "Crema di carciofi, provola affumicata, pomodorini secchi, alici, muddica",
+          "priceEur": 10
+        }
+      ]
+    },
+    {
+      "name": "le focacce",
+      "sortOrder": 1,
+      "products": [
+        {
+          "name": "Classiche",
+          "description": "con pomodorini, rucola, olive Riviera, Crudo/ Speck/ Lardo/ Mortadella",
+          "priceEur": 8
+        },
+        {
+          "name": "Cetara",
+          "description": "Stracciatella di burrata, acciughe di Sicilia, pomodori piennolo rossi e gialli",
+          "priceEur": 10
+        },
+        {
+          "name": "Modena",
+          "description": "Mortadella di Bologna, ricotta, crema di pistacchio, granelle di pistacchio",
+          "priceEur": 10
+        },
+        {
+          "name": "Parma",
+          "description": "Prosciutto Crudo Parma, bufala, olive Riviera, pomodori Piennolo rossi e gialli",
+          "priceEur": 10
+        },
+        {
+          "name": "Arignano",
+          "description": "Stracciatella di burrata, salsiccia di Arignano, olive Riviera",
+          "priceEur": 10
+        }
+      ]
+    },
+    {
+      "name": "i fritti",
+      "sortOrder": 2,
+      "products": [
+        { "name": "Frittatine Alla Norma", "priceEur": 4 },
+        { "name": "Crocchè patate e provola", "priceEur": 3.5 },
+        { "name": "Frittatine Alla Carbonara", "priceEur": 4 },
+        { "name": "Montanarine (6 pz) - Pomodoro, fior di latte, parmigiano, basilico", "priceEur": 5 },
+        { "name": "Kono street food", "description": "Cono di pasta fritta con fior di latte, prosciutto cotto, pomodorino", "priceEur": 7.5 }
+      ]
+    },
+    {
+      "name": "le pizze classiche",
+      "sortOrder": 3,
+      "products": [
+        { "name": "Margherita", "description": "Pomodoro 100% Italia, Fior di latte campano", "priceEur": 6 },
+        { "name": "Formaggi", "description": "Pomodoro, fior di latte, toma, gorgonzola, parmigiano", "priceEur": 7.5 },
+        { "name": "Prosciutto", "description": "Pomodoro, fior di latte, prosciutto, basilico", "priceEur": 7 },
+        { "name": "Marinara", "description": "Pomodoro, aglio, olio di Sicilia", "priceEur": 5.5 },
+        { "name": "Diavola", "description": "Pomodoro, fior di latte, spianata calabra, basilico", "priceEur": 7.5 },
+        { "name": "4 Stagioni", "description": "Pomodoro, fior di latte, prosciutto cotto, olive, carciofi, funghi", "priceEur": 8 },
+        { "name": "Capricciosa", "description": "Pomodoro, fior di latte, prosciutto cotto, olive, carciofi, funghi, spianata", "priceEur": 8.5 },
+        { "name": "Ortolana", "description": "Pomodoro, fior di latte, verdure di stagione, basilico", "priceEur": 7.5 },
+        { "name": "Greca", "description": "Pomodoro, fior di latte, olive di riviera, basilico", "priceEur": 7 },
+        { "name": "Napoli", "description": "Pomodoro, fior di latte, capperi, acciughe di Cetara, origano", "priceEur": 7.5 },
+        { "name": "Bufala", "description": "Pomodoro, bufala campana DOP, basilico", "priceEur": 9 }
+      ]
+    },
+    {
+      "name": "le pizze speciali",
+      "sortOrder": 4,
+      "products": [
+        { "name": "Damia", "description": "Pomodoro, stracciata di burrata, prosciutto crudo di Parma, basilico", "priceEur": 10.5 },
+        { "name": "J P", "description": "Pomodoro, fior di latte, prosciutto crudo, grana e rucola", "priceEur": 10.5 },
+        { "name": "Nà", "description": "Fior di latte, gorgonzola, pere, noci", "priceEur": 8 },
+        { "name": "Manumaas", "description": "Provola affumicata, salsiccia, friarielli, basilico", "priceEur": 9 },
+        { "name": "Pizzo", "description": "Pomodoro, fior di latte, salsiccia, nduja", "priceEur": 7.5 },
+        { "name": "Zio Walter", "description": "Fior di latte, pomodori secchi, spianata, salsiccia, basilico", "priceEur": 8 }
+      ]
+    },
+    {
+      "name": "le pizze contemporanee",
+      "sortOrder": 5,
+      "products": [
+        { "name": "Biga", "description": "Fior di latte, crema di patate viola, polpo, olive, pomodori Piennolo", "priceEur": 15 },
+        { "name": "Romana", "description": "Fior di latte, crema all'uovo, guanciale, pecorino, basilico", "priceEur": 12 },
+        { "name": "La Pugliese", "description": "Pomodoro San Marzano, stracciatella, cipolle caramellate, salsiccia", "priceEur": 13 },
+        { "name": "Essenziale", "description": "Fior di latte, provola affumicata, pepe, parmigiano, tarallo", "priceEur": 10 },
+        { "name": "Bologna", "description": "Fior di latte, stracciatella, mortadella, pistacchi, cornicione ricotta", "priceEur": 12 },
+        { "name": "Parmigiana", "description": "Pomodoro, fior di latte, melanzane, fonduta parmigiano, prosciutto cotto", "priceEur": 12 },
+        { "name": "La Burratina", "description": "Pomodoro San Marzano, burratina, olive Riviera", "priceEur": 12 },
+        { "name": "Crocchè", "description": "Fior di latte, crocchè di patata, fonduta pomodoro e basilico, pecorino", "priceEur": 11 }
+      ]
+    },
+    {
+      "name": "le bevande",
+      "sortOrder": 6,
+      "products": [
+        { "name": "Acqua naturale/frizzante 50cl", "priceEur": 1 },
+        { "name": "Birra Poretti 4 luppoli 33cl", "priceEur": 3 },
+        { "name": "Icnusa non filtrata 33cl", "priceEur": 3.5 },
+        { "name": "Bibite in lattina", "priceEur": 2.5 },
+        { "name": "Birra Poretti 6 luppoli 33cl", "priceEur": 3.5 },
+        { "name": "Birra Carlsberg Special Brew 33cl", "priceEur": 4 }
+      ]
+    },
+    {
+      "name": "i dolci",
+      "sortOrder": 7,
+      "products": [
+        { "name": "Maritozzo crema pasticcera e panna", "priceEur": 5 },
+        { "name": "Graffa napoletana al cioccolato", "priceEur": 5 }
+      ]
+    }
+  ]
+}

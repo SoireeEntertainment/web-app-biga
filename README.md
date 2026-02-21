@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Biga Order – Web App ordini (stile Flipdish)
 
-## Getting Started
+Web app di food ordering multi-tenant, configurata per **Biga Pizzeria – Villanova d'Asti**.
 
-First, run the development server:
+## Stack
+
+- **Next.js** (App Router) + TypeScript
+- **Tailwind CSS** (tema brand Biga)
+- **Prisma** + PostgreSQL (Neon)
+- **Stripe** (Payment Element: Carta + Apple Pay)
+- **Zod** + **bcryptjs** (validazione e auth)
+
+## Setup rapido
+
+1. **Dipendenze**
+   ```bash
+   npm install
+   ```
+
+2. **Variabili d'ambiente**
+   - Copia `.env.example` in `.env`
+   - **DATABASE_URL**: connection string Postgres (es. [Neon](https://neon.tech))
+   - **STRIPE_SECRET_KEY** / **NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY**: da Stripe Dashboard
+   - **STRIPE_WEBHOOK_SECRET**: da `stripe listen` (vedi sotto)
+   - **ADMIN_USER** / **ADMIN_PASSWORD**: Basic Auth per `/admin`
+
+3. **Database**
+   ```bash
+   npm run db:push
+   npm run import-menu
+   ```
+   (`import-menu` legge `data/menu.json` e crea il ristorante `biga-villanova` con categorie e prodotti.)
+
+4. **Avvio**
+   ```bash
+   npm run dev
+   ```
+   Apri [http://localhost:3000](http://localhost:3000).
+
+## Scraping menu da bigapizzeria.it (opzionale)
+
+Per rigenerare `data/menu.json` dal sito:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx playwright install chromium
+npm run scrape
+npm run import-menu
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Pagamenti Stripe (test)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Webhook in locale**: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+- Copia il **webhook signing secret** in `.env` come `STRIPE_WEBHOOK_SECRET`.
+- **Apple Pay**: in dev va testato su Safari con Wallet configurato; in produzione serve HTTPS e dominio verificato.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Route principali
 
-## Learn More
+| Route | Descrizione |
+|-------|-------------|
+| `/` | Home – link al ristorante |
+| `/[restaurantSlug]/order` | Menù e carrello |
+| `/[restaurantSlug]/checkout` | Checkout (dati, tipo ordine, pagamento) |
+| `/order/[orderId]/confirmation` | Conferma ordine |
+| `/order/[orderId]/pay` | Pagamento Stripe (Payment Element) |
+| `/account/login`, `/account/register`, `/account/orders` | Auth cliente (opzionale) |
+| `/admin`, `/admin/orders`, `/admin/customers`, `/admin/stats` | Dashboard admin (Basic Auth) |
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `npm run dev` – dev server
+- `npm run build` / `npm run start` – build e avvio produzione
+- `npm run scrape` – scrape menu Biga → `data/menu.json`
+- `npm run import-menu` – import menu da `data/menu.json` nel DB
+- `npm run db:generate` – genera Prisma Client
+- `npm run db:push` – applica schema al DB (no migration files)
+- `npm run db:migrate` – crea/applica migration

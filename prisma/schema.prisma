@@ -1,0 +1,202 @@
+// Prisma schema - multi-tenant food ordering (Biga Pizzeria + future clients)
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Restaurant {
+  id               String     @id @default(cuid())
+  slug             String     @unique
+  name             String
+  address          String?
+  city             String?
+  cap              String?
+  phone            String?
+  deliveryFeeCents Int        @default(150)
+  minOrderCents    Int?
+  deliveryEnabled  Boolean    @default(true)
+  deliveryRadiusKm Float?
+  restaurantLat    Float?
+  restaurantLng    Float?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  categories       Category[]
+  orders           Order[]
+  products         Product[]
+  ingredients      Ingredient[]
+}
+
+model Category {
+  id           String   @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name         String
+  sortOrder    Int      @default(0)
+  products     Product[]
+}
+
+model Product {
+  id                        String             @id @default(cuid())
+  restaurantId              String
+  restaurant                Restaurant         @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  categoryId                String
+  category                  Category           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name                      String
+  description               String?
+  basePriceCents             Int
+  imageUrl                  String?
+  sortOrder                 Int                @default(0)
+  isCustomizableIngredients  Boolean           @default(false)
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
+  productIngredients        ProductIngredient[]
+}
+
+model Ingredient {
+  id                  String             @id @default(cuid())
+  restaurantId        String
+  restaurant          Restaurant         @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name                String
+  defaultAddPriceCents Int               @default(0)
+  isActive             Boolean           @default(true)
+  sortOrder            Int                @default(0)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  productIngredients  ProductIngredient[]
+  orderItemChanges     OrderItemIngredientChange[]
+
+  @@unique([restaurantId, name])
+}
+
+model ProductIngredient {
+  id                   String     @id @default(cuid())
+  productId            String
+  product              Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ingredientId         String
+  ingredient           Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  isDefault            Boolean    @default(true)
+  allowRemove          Boolean    @default(true)
+  allowAdd             Boolean    @default(true)
+  addPriceCentsOverride Int?
+  sortOrder            Int        @default(0)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  @@unique([productId, ingredientId])
+}
+
+enum OrderType {
+  DELIVERY
+  PICKUP
+}
+
+enum OrderStatus {
+  NEW
+  ACCEPTED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELED
+}
+
+enum PaymentMethod {
+  cash
+  card
+  apple_pay
+}
+
+enum PaymentStatus {
+  unpaid
+  paid
+  failed
+  refunded
+}
+
+model Order {
+  id                String        @id @default(cuid())
+  restaurantId      String
+  restaurant        Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  userId            String?
+  user              User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status            OrderStatus   @default(NEW)
+  type              OrderType
+  // Customer (phone required)
+  customerName      String
+  customerPhone     String
+  customerEmail     String?
+  // Delivery
+  deliveryAddress   String?
+  deliveryCity      String?
+  deliveryCap       String?
+  deliveryNotes     String?
+  // Pickup
+  pickupAt          DateTime?
+  // Totals (cents)
+  subtotalCents     Int
+  deliveryFeeCents  Int           @default(0)
+  totalCents        Int
+  // Payment
+  paymentMethod     PaymentMethod
+  paymentStatus     PaymentStatus @default(unpaid)
+  stripePaymentIntentId String?
+  stripePaymentIntentStatus String?
+  orderNotes        String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  items             OrderItem[]
+}
+
+model OrderItem {
+  id            String   @id @default(cuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String?
+  name          String
+  priceCents    Int
+  quantity      Int
+  notes         String?
+  ingredientChanges OrderItemIngredientChange[]
+}
+
+enum IngredientChangeType {
+  ADD
+  REMOVE
+}
+
+model OrderItemIngredientChange {
+  id                    String              @id @default(cuid())
+  orderItemId           String
+  orderItem             OrderItem           @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  ingredientId          String?
+  ingredientNameSnapshot String
+  type                  IngredientChangeType
+  priceDeltaCents       Int                 @default(0)
+  createdAt             DateTime            @default(now())
+
+  ingredient            Ingredient?         @relation(fields: [ingredientId], references: [id], onDelete: SetNull)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  orders        Order[]
+  sessions      Session[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash    String   // hash of session token
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
