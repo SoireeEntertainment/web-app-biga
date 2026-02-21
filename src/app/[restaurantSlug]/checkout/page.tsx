@@ -21,6 +21,11 @@ type MenuProduct = {
   allAddableIngredients?: { id: string; name: string }[];
 };
 
+function getRemovableNamesMap(product: unknown): Map<string, string> {
+  const arr = (product as { defaultRemovableIngredients?: { id: string; name: string }[] } | null | undefined)?.defaultRemovableIngredients;
+  return new Map(Array.isArray(arr) ? arr.map((r) => [r.id, r.name]) : []);
+}
+
 export default function CheckoutPage({ params }: { params: Promise<{ restaurantSlug: string }> }) {
   const [slug, setSlug] = useState("");
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -408,10 +413,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
               <p className="mb-2 text-sm font-medium">Riepilogo ordine</p>
               <ul className="space-y-1 text-sm text-muted-foreground">
                 {cart.map((item, idx) => {
-                  const product = menu?.categories.flatMap((c) => c.products).find((p) => p.id === item.productId) as MenuProduct | undefined;
+                  const product = menu?.categories.flatMap((c) => c.products).find((p) => p.id === item.productId);
                   const defaultIds = new Set(product?.defaultIngredientIds ?? []);
                   const addableNames = new Map(product?.allAddableIngredients?.map((a) => [a.id, a.name]) ?? []);
-                  const removableNames = new Map((product as MenuProduct | undefined)?.defaultRemovableIngredients?.map((r) => [r.id, r.name]) ?? []);
+                  const removableNames = getRemovableNamesMap(product);
                   const added = item.addedIngredientIds ?? [];
                   const removed = item.removedIngredientIds ?? [];
                   const removedNames = removed.map((id) => removableNames.get(id) ?? "—");
