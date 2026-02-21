@@ -14,19 +14,19 @@ function formatPrice(cents: number) {
 
 type Step = "customer" | "orderType" | "payment";
 
+type MenuProduct = {
+  id: string;
+  defaultIngredientIds?: string[];
+  defaultRemovableIngredients?: { id: string; name: string }[];
+  allAddableIngredients?: { id: string; name: string }[];
+};
+
 export default function CheckoutPage({ params }: { params: Promise<{ restaurantSlug: string }> }) {
   const [slug, setSlug] = useState("");
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menu, setMenu] = useState<{
     restaurant: Restaurant;
-    categories: {
-      products: {
-        id: string;
-        defaultIngredientIds?: string[];
-        defaultRemovableIngredients?: { id: string; name: string }[];
-        allAddableIngredients?: { id: string; name: string }[];
-      }[];
-    }[];
+    categories: { products: MenuProduct[] }[];
   } | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [step, setStep] = useState<Step>("customer");
