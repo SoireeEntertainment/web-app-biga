@@ -19,7 +19,14 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menu, setMenu] = useState<{
     restaurant: Restaurant;
-    categories: { products: { id: string; defaultIngredientIds?: string[]; allAddableIngredients?: { id: string; name: string }[] }[] }[];
+    categories: {
+      products: {
+        id: string;
+        defaultIngredientIds?: string[];
+        defaultRemovableIngredients?: { id: string; name: string }[];
+        allAddableIngredients?: { id: string; name: string }[];
+      }[];
+    }[];
   } | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [step, setStep] = useState<Step>("customer");
