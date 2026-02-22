@@ -29,13 +29,12 @@ export async function GET(request: NextRequest) {
       orderBy: { name: "asc" },
     });
     // Case-insensitive filter (SQLite doesn't support mode: 'insensitive')
-    type IngredientRow = (typeof ingredients)[number];
     const filtered =
       q.length > 0
-        ? ingredients.filter((i: IngredientRow) => i.name.toLowerCase().includes(q.toLowerCase()))
+        ? ingredients.filter((i: { name: string }) => i.name.toLowerCase().includes(q.toLowerCase()))
         : ingredients;
     // Sort A-Z case-insensitive
-    filtered.sort((a: IngredientRow, b: IngredientRow) => a.name.localeCompare(b.name, "it", { sensitivity: "base" }));
+    filtered.sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, "it", { sensitivity: "base" }));
     return NextResponse.json(filtered);
   } catch (err) {
     console.error("[admin/ingredients] GET error:", err);
