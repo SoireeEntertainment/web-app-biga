@@ -66,7 +66,7 @@ export async function POST(request: Request) {
   }
   const maxOrder = await prisma.ingredient
     .aggregate({ where: { restaurantId }, _max: { sortOrder: true } })
-    .then((r) => r._max.sortOrder ?? -1);
+    .then((r: { _max: { sortOrder: number | null } }) => r._max.sortOrder ?? -1);
   const ingredient = await prisma.ingredient.create({
     data: {
       restaurantId,
