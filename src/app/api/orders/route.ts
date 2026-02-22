@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { orderCreateSchema } from "@/lib/validations";
-import { getSession } from "@/lib/auth";
+import { auth } from "@clerk/nextjs/server";
 import { haversineKm } from "@/lib/geo";
 import { computeItemPriceCents } from "@/lib/pricing";
 import { OrderStatus, PaymentMethod, PaymentStatus } from "@prisma/client";
@@ -185,8 +185,7 @@ export async function POST(request: Request) {
     data.type === "DELIVERY" ? restaurant.deliveryFeeCents : 0;
   const totalCents = subtotalCents + deliveryFeeCents;
 
-  const session = await getSession();
-  const userId = session?.userId ?? null;
+  const { userId } = await auth();
 
   const paymentMethodDb =
     data.paymentMethod === "cash" ? PaymentMethod.cash : PaymentMethod.stripe;

@@ -15,6 +15,7 @@
     "db:push": "prisma db push"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.38.1",
     "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.4.0",
     "@stripe/react-stripe-js": "^5.6.0",

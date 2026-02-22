@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const ADMIN_USER = process.env.ADMIN_USER ?? "admin";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "admin";
@@ -21,25 +22,43 @@ function checkBasicAuth(request: NextRequest): boolean {
   }
 }
 
-export function middleware(request: NextRequest) {
-  if (!isAdminRoute(request.nextUrl.pathname)) {
+const isAccountRoute = createRouteMatcher([
+  "/account(.*)",
+  "/api/account(.*)",
+]);
+
+export default clerkMiddleware(async (auth, req: NextRequest) => {
+  const pathname = req.nextUrl.pathname;
+
+  // Admin: Basic Auth (unchanged)
+  if (isAdminRoute(pathname)) {
+    if (!checkBasicAuth(req)) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      return new NextResponse("Authentication required", {
+        status: 401,
+        headers: {
+          "WWW-Authenticate": 'Basic realm="Admin"',
+        },
+      });
+    }
     return NextResponse.next();
   }
-  if (checkBasicAuth(request)) {
-    return NextResponse.next();
+
+  // Account: Clerk required
+  if (isAccountRoute(req)) {
+    await auth.protect();
   }
-  const isApi = request.nextUrl.pathname.startsWith("/api/");
-  if (isApi) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  return new NextResponse("Authentication required", {
-    status: 401,
-    headers: {
-      "WWW-Authenticate": 'Basic realm="Admin"',
-    },
-  });
-}
+
+  return NextResponse.next();
+});
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/api/admin/:path*",
+    "/account/:path*",
+    "/api/account/:path*",
+  ],
 };

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { getCart, type CartItem } from "@/lib/cart";
 import { checkoutCustomerSchema, checkoutDeliverySchema } from "@/lib/validations";
 
@@ -223,11 +224,21 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
   return (
     <div className="min-h-screen bg-background pb-8">
       <header className="sticky top-0 z-10 border-b border-border bg-card">
-        <div className="mx-auto flex h-14 max-w-2xl items-center px-4">
-          <Link href={`/${slug}/order`} className="text-primary font-medium">
-            ← Indietro
-          </Link>
-          <span className="ml-4 font-semibold">Checkout</span>
+        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <Link href={`/${slug}/order`} className="text-primary font-medium">
+              ← Indietro
+            </Link>
+            <span className="ml-2 font-semibold">Checkout</span>
+          </div>
+          <SignedOut>
+            <Link href="/account/sign-in" className="text-sm text-muted-foreground hover:text-foreground">
+              Accedi
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "h-8 w-8" } }} />
+          </SignedIn>
         </div>
       </header>
 

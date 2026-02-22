@@ -122,8 +122,7 @@ model Order {
   id                String        @id @default(cuid())
   restaurantId      String
   restaurant        Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  userId            String?
-  user              User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId            String?       // Clerk user id (no FK; claim by email)
   status            OrderStatus   @default(NEW)
   type              OrderType
   // Customer (phone required)
@@ -150,6 +149,8 @@ model Order {
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   items             OrderItem[]
+
+  @@index([userId])
 }
 
 model OrderItem {
@@ -189,7 +190,6 @@ model User {
   name          String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  orders        Order[]
   sessions      Session[]
 }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { UserButton } from "@clerk/nextjs";
 
 type Order = {
   id: string;
@@ -21,29 +22,19 @@ function formatDate(s: string) {
 }
 
 export default function AccountOrdersPage() {
-  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((data) => {
-        setUser(data.user);
-        if (!data.user) return;
-        return fetch("/api/account/orders");
-      })
-      .then((r) => (r && r.ok ? r.json() : []))
-      .then((data) => (Array.isArray(data) ? setOrders(data) : null))
-      .finally(() => setLoading(false));
+    fetch("/api/account/claim-orders", { method: "POST" })
+      .catch(() => {})
+      .finally(() => {
+        fetch("/api/account/orders")
+          .then((r) => (r.ok ? r.json() : []))
+          .then((data) => (Array.isArray(data) ? setOrders(data) : []))
+          .finally(() => setLoading(false));
+      });
   }, []);
-
-  const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
-    setOrders([]);
-    window.location.href = "/";
-  };
 
   if (loading) {
     return (
@@ -53,30 +44,12 @@ export default function AccountOrdersPage() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-12 text-center">
-        <p className="text-muted-foreground">Devi accedere per vedere i tuoi ordini.</p>
-        <Link href="/account/login" className="mt-4 inline-block text-primary underline">
-          Accedi
-        </Link>
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">I tuoi ordini</h1>
-        <button
-          type="button"
-          onClick={logout}
-          className="text-sm text-muted-foreground underline"
-        >
-          Esci
-        </button>
+        <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "h-9 w-9" } }} />
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
       {orders.length === 0 ? (
         <p className="mt-8 text-muted-foreground">Nessun ordine ancora.</p>
       ) : (
@@ -101,8 +74,12 @@ export default function AccountOrdersPage() {
         </ul>
       )}
       <p className="mt-8">
+        <Link href="/account" className="text-primary underline">
+          ← Account
+        </Link>
+        {" · "}
         <Link href="/" className="text-primary underline">
-          ← Torna alla home
+          Torna alla home
         </Link>
       </p>
     </div>

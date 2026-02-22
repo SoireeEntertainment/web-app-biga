@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { getCart, setCart, cartTotalItems, cartSubtotalCents, type CartItem } from "@/lib/cart";
 import { FloatingCartDesktop } from "@/components/cart/FloatingCartDesktop";
 import { FloatingCartMobileFab } from "@/components/cart/FloatingCartMobileFab";
@@ -218,12 +219,17 @@ export default function OrderPage({
               {menu?.restaurant.name ?? slug}
             </span>
           </Link>
-          <Link
-            href="/account/login"
-            className="text-sm text-muted-foreground hover:text-foreground shrink-0"
-          >
-            Accedi
-          </Link>
+          <SignedOut>
+            <Link
+              href="/account/sign-in"
+              className="text-sm text-muted-foreground hover:text-foreground shrink-0"
+            >
+              Accedi
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "h-8 w-8" } }} />
+          </SignedIn>
         </div>
         <div className="mx-auto max-w-6xl px-4 pb-2">
           <input
