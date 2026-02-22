@@ -1,4 +1,15 @@
 import Link from "next/link";
+import { AdminMobileNav } from "@/components/admin/AdminMobileNav";
+
+const adminNavItems = [
+  { label: "Dashboard", href: "/admin" },
+  { label: "Ordini", href: "/admin/orders" },
+  { label: "Clienti", href: "/admin/customers" },
+  { label: "Statistiche", href: "/admin/stats" },
+  { label: "Ingredienti", href: "/admin/ingredients" },
+  { label: "Menu", href: "/admin/menu" },
+  { label: "Consegna", href: "/admin/delivery" },
+];
 
 export default function AdminLayout({
   children,
@@ -9,30 +20,40 @@ export default function AdminLayout({
     <div className="min-h-screen bg-muted/30">
       <nav className="sticky top-0 z-10 border-b border-border bg-card">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4">
-          <Link href="/admin" className="font-semibold text-primary">
+          <AdminMobileNav items={adminNavItems} />
+          <Link
+            href="/admin"
+            className="font-semibold text-primary hidden md:inline-block"
+          >
             Admin
           </Link>
-          <Link href="/admin/orders" className="text-sm text-muted-foreground hover:text-foreground">
-            Ordini
-          </Link>
-          <Link href="/admin/customers" className="text-sm text-muted-foreground hover:text-foreground">
-            Clienti
-          </Link>
-          <Link href="/admin/stats" className="text-sm text-muted-foreground hover:text-foreground">
-            Statistiche
-          </Link>
-          <Link href="/admin/ingredients" className="text-sm text-muted-foreground hover:text-foreground">
-            Ingredienti
-          </Link>
-          <Link href="/admin/menu" className="text-sm text-muted-foreground hover:text-foreground">
-            Menu
-          </Link>
-          <Link href="/admin/delivery" className="text-sm text-muted-foreground hover:text-foreground">
-            Consegna
-          </Link>
+          <div className="hidden md:flex md:items-center md:gap-6">
+            {adminNavItems.map((item) => (
+              <AdminNavLink key={item.href} href={item.href}>
+                {item.label}
+              </AdminNavLink>
+            ))}
+          </div>
         </div>
       </nav>
       <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
     </div>
+  );
+}
+
+function AdminNavLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="text-sm text-muted-foreground hover:text-foreground"
+    >
+      {children}
+    </Link>
   );
 }
