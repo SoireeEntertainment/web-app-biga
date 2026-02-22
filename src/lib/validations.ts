@@ -59,7 +59,16 @@ export const authLoginSchema = z.object({
 });
 
 export const adminOrderStatusSchema = z.object({
-  status: z.enum(["NEW", "ACCEPTED", "PREPARING", "READY", "COMPLETED", "CANCELED"]),
+  status: z.enum([
+    "NEW",
+    "PAID",
+    "ACCEPTED",
+    "PREPARING",
+    "READY",
+    "OUT_FOR_DELIVERY",
+    "COMPLETED",
+    "CANCELED",
+  ]),
 });
 
 export type CheckoutCustomer = z.infer<typeof checkoutCustomerSchema>;

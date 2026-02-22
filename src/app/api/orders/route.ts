@@ -4,7 +4,7 @@ import { orderCreateSchema } from "@/lib/validations";
 import { getSession } from "@/lib/auth";
 import { haversineKm } from "@/lib/geo";
 import { computeItemPriceCents } from "@/lib/pricing";
-import type { OrderStatus, PaymentMethod, PaymentStatus } from "@prisma/client";
+import { OrderStatus, PaymentMethod, PaymentStatus } from "@prisma/client";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -188,11 +188,14 @@ export async function POST(request: Request) {
   const session = await getSession();
   const userId = session?.userId ?? null;
 
+  const paymentMethodDb =
+    data.paymentMethod === "cash" ? PaymentMethod.cash : PaymentMethod.stripe;
+
   const order = await prisma.order.create({
     data: {
       restaurantId: restaurant.id,
       userId,
-      status: "NEW" as OrderStatus,
+      status: OrderStatus.NEW,
       type: data.type,
       customerName: data.customerName,
       customerPhone: data.customerPhone,
@@ -202,11 +205,11 @@ export async function POST(request: Request) {
       deliveryCap: data.deliveryCap ?? null,
       deliveryNotes: data.deliveryNotes ?? null,
       pickupAt: data.pickupAt ? new Date(data.pickupAt) : null,
-      paymentMethod: data.paymentMethod as PaymentMethod,
+      paymentMethod: paymentMethodDb,
       paymentStatus:
         data.paymentMethod === "cash"
-          ? ("unpaid" as PaymentStatus)
-          : ("unpaid" as PaymentStatus),
+          ? PaymentStatus.unpaid
+          : PaymentStatus.pending,
       subtotalCents,
       deliveryFeeCents,
       totalCents,

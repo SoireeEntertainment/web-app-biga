@@ -97,24 +97,25 @@ enum OrderType {
 
 enum OrderStatus {
   NEW
+  PAID
   ACCEPTED
   PREPARING
   READY
+  OUT_FOR_DELIVERY
   COMPLETED
   CANCELED
 }
 
 enum PaymentMethod {
   cash
-  card
-  apple_pay
+  stripe
 }
 
 enum PaymentStatus {
   unpaid
+  pending
   paid
   failed
-  refunded
 }
 
 model Order {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
+import { PaymentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
       await prisma.order.update({
         where: { id: orderId },
         data: {
-          paymentStatus: "paid",
+          paymentStatus: PaymentStatus.paid,
           stripePaymentIntentStatus: pi.status,
         },
       });
