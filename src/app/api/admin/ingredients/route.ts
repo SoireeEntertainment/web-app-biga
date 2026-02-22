@@ -12,14 +12,15 @@ const createSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    let restaurantId = searchParams.get("restaurantId");
+    let restaurantId: string | null = searchParams.get("restaurantId");
     if (!restaurantId) {
       const first = await prisma.restaurant.findFirst({ select: { id: true } });
       if (!first) return NextResponse.json({ error: "No restaurant" }, { status: 404 });
       restaurantId = first.id;
     }
+    const rid = restaurantId as string;
     const q = searchParams.get("q")?.trim() ?? "";
-    const where: { restaurantId: string; name?: { contains: string } } = { restaurantId };
+    const where: { restaurantId: string; name?: { contains: string } } = { restaurantId: rid };
     if (q.length > 0) {
       where.name = { contains: q };
     }
