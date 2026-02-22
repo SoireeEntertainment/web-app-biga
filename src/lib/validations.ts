@@ -58,6 +58,17 @@ export const authLoginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const customerProfileSchema = z.object({
+  deliveryName: z.string().max(100).optional(),
+  deliveryPhone: z.string().max(20).optional(),
+  deliveryEmail: z.string().email().optional().or(z.literal("")),
+  addressLine1: z.string().max(200).optional(),
+  addressLine2: z.string().max(200).optional(),
+  city: z.string().max(100).optional(),
+  zip: z.string().max(10).optional(),
+  notes: z.string().max(500).optional(),
+});
+
 export const adminOrderStatusSchema = z.object({
   status: z.enum([
     "NEW",

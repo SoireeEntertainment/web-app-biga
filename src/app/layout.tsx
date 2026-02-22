@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { itIT } from "@clerk/localizations";
 import { Josefin_Sans, Quicksand } from "next/font/google";
 import "./globals.css";
 
@@ -18,7 +19,10 @@ const quicksand = Quicksand({
 export const metadata: Metadata = {
   title: "Ordina online · Biga Pizzeria",
   description: "Ordina pizza, focacce e fritti da Biga Pizzeria – Villanova d'Asti. Consegna e ritiro.",
-  icons: { icon: "/icon.png" },
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -27,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={itIT}>
       <html lang="it">
         <body
           className={`${josefin.variable} ${quicksand.variable} antialiased`}

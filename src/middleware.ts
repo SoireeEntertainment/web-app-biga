@@ -46,8 +46,12 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     return NextResponse.next();
   }
 
-  // Account: Clerk required
+  // Account: Clerk required (except public auth pages)
   if (isAccountRoute(req)) {
+    const publicAccountPaths = ["/account/sign-in", "/account/sign-up", "/account/login", "/account/register"];
+    if (publicAccountPaths.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+      return NextResponse.next();
+    }
     await auth.protect();
   }
 

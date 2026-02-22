@@ -183,6 +183,23 @@ model OrderItemIngredientChange {
   ingredient            Ingredient?         @relation(fields: [ingredientId], references: [id], onDelete: SetNull)
 }
 
+model CustomerProfile {
+  id              String   @id @default(cuid())
+  clerkUserId     String   @unique
+  deliveryName    String?
+  deliveryPhone   String?
+  deliveryEmail   String?
+  addressLine1    String?
+  addressLine2   String?
+  city            String?
+  zip             String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clerkUserId])
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique

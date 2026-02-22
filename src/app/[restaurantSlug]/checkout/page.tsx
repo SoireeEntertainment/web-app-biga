@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { getCart, type CartItem } from "@/lib/cart";
 import { checkoutCustomerSchema, checkoutDeliverySchema } from "@/lib/validations";
 
@@ -52,8 +52,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
   const [orderNotes, setOrderNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "apple_pay">("cash");
   const [checkingAddress, setCheckingAddress] = useState(false);
+  const [saveProfileForNextOrders, setSaveProfileForNextOrders] = useState(false);
+  const [prefillDone, setPrefillDone] = useState(false);
 
   const router = useRouter();
+  const { isSignedIn } = useAuth();
 
   useEffect(() => {
     params.then((p) => setSlug(p.restaurantSlug));
@@ -76,6 +79,30 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
         }
       });
   }, [slug, router]);
+
+  useEffect(() => {
+    if (prefillDone) return;
+    fetch("/api/account/profile")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d) return;
+        setPrefillDone(true);
+        const clerk = d.clerk;
+        const profile = d.profile;
+        if (clerk?.fullName && !name) setName(clerk.fullName);
+        if (clerk?.phone && !phone) setPhone(clerk.phone);
+        if (clerk?.email && !email) setEmail(clerk.email);
+        if (profile) {
+          if (profile.deliveryName && !name) setName(profile.deliveryName);
+          if (profile.deliveryPhone && !phone) setPhone(profile.deliveryPhone);
+          if (profile.deliveryEmail && !email) setEmail(profile.deliveryEmail);
+          if (profile.addressLine1) setAddress(profile.addressLine1);
+          if (profile.city) setCity(profile.city);
+          if (profile.zip) setCap(profile.zip);
+          if (profile.notes) setDeliveryNotes(profile.notes);
+        }
+      });
+  }, [prefillDone]);
 
   useEffect(() => {
     setDeliveryLat(null);
@@ -189,6 +216,21 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
         setError(data.error ?? "Errore creazione ordine");
         return;
       }
+      if (saveProfileForNextOrders && isSignedIn) {
+        fetch("/api/account/profile", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            deliveryName: name || undefined,
+            deliveryPhone: phone || undefined,
+            deliveryEmail: email || undefined,
+            addressLine1: address || undefined,
+            city: city || undefined,
+            zip: cap || undefined,
+            notes: deliveryNotes || undefined,
+          }),
+        }).catch(() => {});
+      }
       if (paymentMethod === "cash") {
         localStorage.removeItem("biga-cart");
         router.push(`/order/${data.orderId}/confirmation`);
@@ -298,6 +340,17 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
                 placeholder="mario@email.it"
               />
             </div>
+            {isSignedIn && (
+              <label className="flex cursor-pointer items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={saveProfileForNextOrders}
+                  onChange={(e) => setSaveProfileForNextOrders(e.target.checked)}
+                  className="rounded border-border"
+                />
+                Salva questi dati per i prossimi ordini
+              </label>
+            )}
             <button
               type="button"
               onClick={handleNext}

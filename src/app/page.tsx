@@ -40,7 +40,7 @@ export default function Home() {
           </Link>
         </div>
         <p className="mt-8 text-sm text-muted-foreground">
-          <Link href="/account/login" className="underline hover:text-foreground">
+          <Link href="/account/sign-in" className="underline hover:text-foreground">
             Accedi
           </Link>
           {" · "}
