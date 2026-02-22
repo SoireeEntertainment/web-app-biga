@@ -38,12 +38,12 @@ export async function GET() {
     const lastOrder = c.orders[0] ?? null;
     const lastOrderAt = lastOrder ? lastOrder.createdAt : null;
     const recency = computeCustomerRecencyBadge(lastOrderAt);
-    const deliveryCount = c.orders.filter((o: OrderRow) => o.type === "DELIVERY").length;
+    const deliveryCount = c.orders.filter((o: { type: string }) => o.type === "DELIVERY").length;
     const pickupCount = c.orders.length - deliveryCount;
     return {
       ...c,
       orderCount: c.orders.length,
-      totalSpentCents: c.orders.reduce((s, o: OrderRow) => s + o.totalCents, 0),
+      totalSpentCents: c.orders.reduce((s, o: { totalCents: number }) => s + o.totalCents, 0),
       lastOrderAt: lastOrderAt ? lastOrderAt.toISOString() : null,
       recency,
       deliveryCount,
