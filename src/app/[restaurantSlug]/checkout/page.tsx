@@ -71,7 +71,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
       .then((data) => {
         if (data) {
           setRestaurant(data.restaurant);
-          setMenu(data);
+          setMenu(data as { restaurant: Restaurant; categories: { products: MenuProduct[] }[] });
         }
       });
   }, [slug, router]);
@@ -413,10 +413,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
               <p className="mb-2 text-sm font-medium">Riepilogo ordine</p>
               <ul className="space-y-1 text-sm text-muted-foreground">
                 {cart.map((item, idx) => {
-                  const product = menu?.categories.flatMap((c) => c.products).find((p) => p.id === item.productId);
+                  const product = menu?.categories.flatMap((c) => c.products).find((p) => p.id === item.productId) as MenuProduct | undefined;
                   const defaultIds = new Set(product?.defaultIngredientIds ?? []);
                   const addableNames = new Map(product?.allAddableIngredients?.map((a) => [a.id, a.name]) ?? []);
-                  const removableNames = getRemovableNamesMap(product as unknown);
+                  const removableNames = getRemovableNamesMap(product);
                   const added = item.addedIngredientIds ?? [];
                   const removed = item.removedIngredientIds ?? [];
                   const removedNames = removed.map((id) => removableNames.get(id) ?? "—");
