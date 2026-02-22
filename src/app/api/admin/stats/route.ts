@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const totalCents = orders.reduce((s, o) => s + o.totalCents, 0);
+  const totalCents = orders.reduce((s: number, o: { totalCents: number }) => s + o.totalCents, 0);
   const count = orders.length;
   const aov = count > 0 ? Math.round(totalCents / count) : 0;
 
