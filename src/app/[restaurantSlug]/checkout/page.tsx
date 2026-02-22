@@ -52,7 +52,6 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
   const [orderNotes, setOrderNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "apple_pay">("cash");
   const [checkingAddress, setCheckingAddress] = useState(false);
-  const [saveProfileForNextOrders, setSaveProfileForNextOrders] = useState(false);
   const [profilePrefillDone, setProfilePrefillDone] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -84,19 +83,25 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
   useEffect(() => {
     if (profilePrefillDone) return;
     setProfileLoading(true);
-    fetch("/api/account/profile")
+    fetch("/api/account/clerk-profile")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (d) {
-          const clerk = d.clerk;
-          const profile = d.profile;
-          setName(profile?.deliveryName ?? clerk?.fullName ?? "");
-          setPhone(profile?.deliveryPhone ?? clerk?.phone ?? "");
-          setEmail(profile?.deliveryEmail ?? clerk?.email ?? "");
-          setAddress(profile?.addressLine1 ?? "");
-          setCity(profile?.city ?? "");
-          setCap(profile?.zip ?? "");
-          setDeliveryNotes(profile?.notes ?? "");
+          const delivery = d.delivery;
+          const hasDelivery = delivery && (delivery.deliveryName ?? delivery.deliveryPhone ?? delivery.deliveryEmail ?? delivery.addressLine1);
+          if (hasDelivery) {
+            setName(delivery.deliveryName ?? "");
+            setPhone(delivery.deliveryPhone ?? "");
+            setEmail(delivery.deliveryEmail ?? "");
+            setAddress(delivery.addressLine1 ?? "");
+            setCity(delivery.city ?? "");
+            setCap(delivery.zip ?? "");
+            setDeliveryNotes(delivery.notes ?? "");
+          } else {
+            setName(d.fullName ?? "");
+            setPhone(d.primaryPhone ?? "");
+            setEmail(d.primaryEmail ?? "");
+          }
         }
       })
       .finally(() => {
@@ -217,21 +222,6 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
         setError(data.error ?? "Errore creazione ordine");
         return;
       }
-      if (saveProfileForNextOrders && isSignedIn) {
-        fetch("/api/account/profile", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            deliveryName: name || undefined,
-            deliveryPhone: phone || undefined,
-            deliveryEmail: email || undefined,
-            addressLine1: address || undefined,
-            city: city || undefined,
-            zip: cap || undefined,
-            notes: deliveryNotes || undefined,
-          }),
-        }).catch(() => {});
-      }
       if (paymentMethod === "cash") {
         localStorage.removeItem("biga-cart");
         router.push(`/order/${data.orderId}/confirmation`);
@@ -311,10 +301,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
               <h2 className="font-heading text-lg font-semibold">I tuoi dati</h2>
               {isSignedIn && (
                 <Link
-                  href="/account"
+                  href="/account/manage"
                   className="text-sm text-primary underline hover:no-underline"
                 >
-                  Modifica in Account
+                  Modifica dati di consegna
                 </Link>
               )}
             </div>
@@ -354,17 +344,6 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
                 placeholder="mario@email.it"
               />
             </div>
-            {isSignedIn && (
-              <label className="flex cursor-pointer items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={saveProfileForNextOrders}
-                  onChange={(e) => setSaveProfileForNextOrders(e.target.checked)}
-                  className="rounded border-border"
-                />
-                Salva questi dati per i prossimi ordini
-              </label>
-            )}
             <button
               type="button"
               onClick={handleNext}
