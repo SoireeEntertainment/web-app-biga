@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   description: "Ordina pizza, focacce e fritti da Biga Pizzeria – Villanova d'Asti. Consegna e ritiro.",
   icons: {
     icon: "/icon.png",
-    apple: "/icon.png",
+    apple: "/apple-icon.png",
   },
 };
 
