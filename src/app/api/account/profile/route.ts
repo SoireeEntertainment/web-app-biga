@@ -58,28 +58,30 @@ export async function PUT(request: Request) {
   }
 
   const data = parsed.data;
+  const trim = (s: string | undefined) => (s && s.trim()) || null;
+  const emailVal = trim(data.deliveryEmail);
   const profile = await prisma.customerProfile.upsert({
     where: { clerkUserId: userId },
     create: {
       clerkUserId: userId,
-      deliveryName: data.deliveryName ?? null,
-      deliveryPhone: data.deliveryPhone ?? null,
-      deliveryEmail: (data.deliveryEmail && data.deliveryEmail.trim()) ? data.deliveryEmail.trim() : null,
-      addressLine1: data.addressLine1 ?? null,
-      addressLine2: data.addressLine2 ?? null,
-      city: data.city ?? null,
-      zip: data.zip ?? null,
-      notes: data.notes ?? null,
+      deliveryName: trim(data.deliveryName),
+      deliveryPhone: trim(data.deliveryPhone),
+      deliveryEmail: emailVal ? emailVal.toLowerCase() : null,
+      addressLine1: trim(data.addressLine1),
+      addressLine2: trim(data.addressLine2),
+      city: trim(data.city),
+      zip: trim(data.zip),
+      notes: trim(data.notes),
     },
     update: {
-      deliveryName: data.deliveryName ?? null,
-      deliveryPhone: data.deliveryPhone ?? null,
-      deliveryEmail: (data.deliveryEmail && data.deliveryEmail.trim()) ? data.deliveryEmail.trim() : null,
-      addressLine1: data.addressLine1 ?? null,
-      addressLine2: data.addressLine2 ?? null,
-      city: data.city ?? null,
-      zip: data.zip ?? null,
-      notes: data.notes ?? null,
+      deliveryName: trim(data.deliveryName),
+      deliveryPhone: trim(data.deliveryPhone),
+      deliveryEmail: emailVal ? emailVal.toLowerCase() : null,
+      addressLine1: trim(data.addressLine1),
+      addressLine2: trim(data.addressLine2),
+      city: trim(data.city),
+      zip: trim(data.zip),
+      notes: trim(data.notes),
     },
   });
 

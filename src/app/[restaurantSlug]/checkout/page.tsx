@@ -53,7 +53,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "apple_pay">("cash");
   const [checkingAddress, setCheckingAddress] = useState(false);
   const [saveProfileForNextOrders, setSaveProfileForNextOrders] = useState(false);
-  const [prefillDone, setPrefillDone] = useState(false);
+  const [profilePrefillDone, setProfilePrefillDone] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const router = useRouter();
   const { isSignedIn } = useAuth();
@@ -81,28 +82,28 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
   }, [slug, router]);
 
   useEffect(() => {
-    if (prefillDone) return;
+    if (profilePrefillDone) return;
+    setProfileLoading(true);
     fetch("/api/account/profile")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!d) return;
-        setPrefillDone(true);
-        const clerk = d.clerk;
-        const profile = d.profile;
-        if (clerk?.fullName && !name) setName(clerk.fullName);
-        if (clerk?.phone && !phone) setPhone(clerk.phone);
-        if (clerk?.email && !email) setEmail(clerk.email);
-        if (profile) {
-          if (profile.deliveryName && !name) setName(profile.deliveryName);
-          if (profile.deliveryPhone && !phone) setPhone(profile.deliveryPhone);
-          if (profile.deliveryEmail && !email) setEmail(profile.deliveryEmail);
-          if (profile.addressLine1) setAddress(profile.addressLine1);
-          if (profile.city) setCity(profile.city);
-          if (profile.zip) setCap(profile.zip);
-          if (profile.notes) setDeliveryNotes(profile.notes);
+        if (d) {
+          const clerk = d.clerk;
+          const profile = d.profile;
+          setName(profile?.deliveryName ?? clerk?.fullName ?? "");
+          setPhone(profile?.deliveryPhone ?? clerk?.phone ?? "");
+          setEmail(profile?.deliveryEmail ?? clerk?.email ?? "");
+          setAddress(profile?.addressLine1 ?? "");
+          setCity(profile?.city ?? "");
+          setCap(profile?.zip ?? "");
+          setDeliveryNotes(profile?.notes ?? "");
         }
+      })
+      .finally(() => {
+        setProfilePrefillDone(true);
+        setProfileLoading(false);
       });
-  }, [prefillDone]);
+  }, [profilePrefillDone]);
 
   useEffect(() => {
     setDeliveryLat(null);
@@ -306,7 +307,20 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
 
         {step === "customer" && (
           <section className="space-y-4">
-            <h2 className="font-heading text-lg font-semibold">I tuoi dati</h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="font-heading text-lg font-semibold">I tuoi dati</h2>
+              {isSignedIn && (
+                <Link
+                  href="/account"
+                  className="text-sm text-primary underline hover:no-underline"
+                >
+                  Modifica in Account
+                </Link>
+              )}
+            </div>
+            {isSignedIn && profileLoading && (
+              <p className="text-sm text-muted-foreground">Caricamento dati...</p>
+            )}
             <div>
               <label className="block text-sm font-medium">Nome *</label>
               <input
