@@ -17,6 +17,7 @@ const quicksand = Quicksand({
 export const metadata: Metadata = {
   title: "Ordina online · Biga Pizzeria",
   description: "Ordina pizza, focacce e fritti da Biga Pizzeria – Villanova d'Asti. Consegna e ritiro.",
+  icons: { icon: "/icon.png" },
 };
 
 export default function RootLayout({
