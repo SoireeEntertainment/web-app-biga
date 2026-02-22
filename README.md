@@ -65,6 +65,23 @@ npm run import-menu
 | `/account/login`, `/account/register`, `/account/orders` | Auth cliente (opzionale) |
 | `/admin`, `/admin/orders`, `/admin/customers`, `/admin/stats` | Dashboard admin (Basic Auth) |
 
+## Deploy su Vercel (evitare "Ristorante non trovato")
+
+1. **Database**: su Vercel serve un DB reale (SQLite su serverless non è adatto).
+   - Imposta **DATABASE_URL** in Vercel → Settings → Environment Variables (es. [Neon](https://neon.tech) o Vercel Postgres).
+
+2. **Schema e dati** (una tantum, con `DATABASE_URL` = quello di produzione):
+   ```bash
+   npx prisma migrate deploy   # applica le migrazioni (SQLite)
+   # oppure, se usi Postgres e non hai migrazioni Postgres: npx prisma db push
+   npm run import-menu         # crea il ristorante biga-villanova e il menu
+   ```
+   Puoi eseguirli in locale con `DATABASE_URL` copiato da Vercel, oppure in un job/script che usa la stessa URL.
+
+3. **Build**: lo script `build` esegue già `prisma generate && next build`; non serve altro.
+
+Se l’API `/api/restaurants/biga-villanova/menu` restituisce 500, di solito è per **DATABASE_URL** mancante/errata o DB vuoto (mancano migrazioni o seed).
+
 ## Scripts
 
 - `npm run dev` – dev server
@@ -73,4 +90,5 @@ npm run import-menu
 - `npm run import-menu` – import menu da `data/menu.json` nel DB
 - `npm run db:generate` – genera Prisma Client
 - `npm run db:push` – applica schema al DB (no migration files)
-- `npm run db:migrate` – crea/applica migration
+- `npm run db:migrate` – crea/applica migration (dev)
+- `npm run db:deploy` – applica migrazioni in produzione (`prisma migrate deploy`)
