@@ -95,6 +95,11 @@ enum OrderType {
   PICKUP
 }
 
+enum OrderSource {
+  WEB
+  MANUAL
+}
+
 enum OrderStatus {
   NEW
   PAID
@@ -125,11 +130,13 @@ model Order {
   userId            String?       // Clerk user id (no FK; claim by email)
   status            OrderStatus   @default(NEW)
   type              OrderType
+  source            OrderSource   @default(WEB)
   // Customer (phone required)
   customerName      String
   customerPhone     String
   customerEmail     String?
   // Delivery
+  deliverySlot      String?       // es. "19:05" - solo per DELIVERY
   deliveryAddress   String?
   deliveryCity      String?
   deliveryCap       String?

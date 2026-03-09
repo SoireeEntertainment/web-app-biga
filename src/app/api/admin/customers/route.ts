@@ -1,8 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { computeCustomerRecencyBadge } from "@/lib/recency";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const orderTypeFilter = searchParams.get("orderType");
+
   const orders = await prisma.order.findMany({
     orderBy: { createdAt: "desc" },
     select: {
@@ -34,7 +37,7 @@ export async function GET() {
     }
     byPhone.get(key)!.orders.push(o);
   }
-  const customers = Array.from(byPhone.values()).map((c) => {
+  let customers = Array.from(byPhone.values()).map((c) => {
     const lastOrder = c.orders[0] ?? null;
     const lastOrderAt = lastOrder ? lastOrder.createdAt : null;
     const recency = computeCustomerRecencyBadge(lastOrderAt);
@@ -50,5 +53,10 @@ export async function GET() {
       pickupCount,
     };
   });
+  if (orderTypeFilter === "DELIVERY") {
+    customers = customers.filter((c) => c.deliveryCount > 0);
+  } else if (orderTypeFilter === "PICKUP") {
+    customers = customers.filter((c) => c.pickupCount > 0);
+  }
   return NextResponse.json(customers);
 }

@@ -4,7 +4,9 @@ import { orderCreateSchema } from "@/lib/validations";
 import { auth } from "@clerk/nextjs/server";
 import { haversineKm } from "@/lib/geo";
 import { computeItemPriceCents } from "@/lib/pricing";
-import { OrderStatus, PaymentMethod, PaymentStatus } from "@prisma/client";
+import { isValidDeliverySlot } from "@/lib/delivery-slots";
+import { sendOrderConfirmationEmail } from "@/lib/email";
+import { OrderStatus, OrderSource, PaymentMethod, PaymentStatus } from "@prisma/client";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -22,6 +24,25 @@ export async function POST(request: Request) {
   });
   if (!restaurant) {
     return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
+  }
+
+  // Validazione slot consegna (solo per DELIVERY)
+  const source = (data.source === "MANUAL" ? OrderSource.MANUAL : OrderSource.WEB) as OrderSource;
+  if (data.type === "DELIVERY") {
+    const slot = data.deliverySlot?.trim();
+    if (!slot) {
+      return NextResponse.json(
+        { error: "Seleziona uno slot orario per la consegna a domicilio." },
+        { status: 400 }
+      );
+    }
+    const now = new Date();
+    if (!isValidDeliverySlot(now, slot)) {
+      return NextResponse.json(
+        { error: "Lo slot selezionato non è più disponibile. Scegli un altro orario o chiama il ristorante." },
+        { status: 400 }
+      );
+    }
   }
 
   // Delivery radius check (when coords available)
@@ -196,9 +217,11 @@ export async function POST(request: Request) {
       userId,
       status: OrderStatus.NEW,
       type: data.type,
+      source,
       customerName: data.customerName,
       customerPhone: data.customerPhone,
       customerEmail: data.customerEmail || null,
+      deliverySlot: data.type === "DELIVERY" ? (data.deliverySlot?.trim() ?? null) : null,
       deliveryAddress: data.deliveryAddress ?? null,
       deliveryCity: data.deliveryCity ?? null,
       deliveryCap: data.deliveryCap ?? null,
@@ -270,6 +293,23 @@ export async function POST(request: Request) {
         data: changes,
       });
     }
+  }
+
+  if (order.customerEmail?.trim()) {
+    sendOrderConfirmationEmail(order.customerEmail.trim(), {
+      customerName: order.customerName,
+      orderId: order.id,
+      type: order.type,
+      items: order.items.map((i) => ({ name: i.name, quantity: i.quantity, priceCents: i.priceCents })),
+      subtotalCents: order.subtotalCents,
+      deliveryFeeCents: order.deliveryFeeCents,
+      totalCents: order.totalCents,
+      deliveryAddress: order.deliveryAddress ?? undefined,
+      deliverySlot: order.deliverySlot ?? undefined,
+      orderNotes: order.orderNotes ?? undefined,
+    }).catch((err) => {
+      if (process.env.NODE_ENV === "development") console.error("[order] email conferma non inviata:", err);
+    });
   }
 
   return NextResponse.json({

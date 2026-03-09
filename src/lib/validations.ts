@@ -22,9 +22,11 @@ export const checkoutPickupSchema = z.object({
 export const orderCreateSchema = z.object({
   restaurantId: z.string().cuid(),
   type: z.enum(["DELIVERY", "PICKUP"]),
+  source: z.enum(["WEB", "MANUAL"]).optional().default("WEB"),
   customerName: z.string().min(1).max(100),
   customerPhone: z.string().regex(phoneRegex),
   customerEmail: z.string().email().optional().nullable(),
+  deliverySlot: z.string().max(10).optional().nullable(),
   deliveryAddress: z.string().max(200).optional().nullable(),
   deliveryCity: z.string().max(100).optional().nullable(),
   deliveryCap: z.string().max(10).optional().nullable(),

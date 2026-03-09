@@ -6,6 +6,11 @@ import Link from "next/link";
 import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { getCart, type CartItem } from "@/lib/cart";
 import { checkoutCustomerSchema, checkoutDeliverySchema } from "@/lib/validations";
+import {
+  getAvailableDeliverySlots,
+  isDeliveryOrderingAvailable,
+  getDeliveryOrderingMessage,
+} from "@/lib/delivery-slots";
 
 type Restaurant = { id: string; slug: string; name: string; address: string | null; city: string | null; phone: string | null; deliveryFeeCents: number };
 
@@ -43,6 +48,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [orderType, setOrderType] = useState<"DELIVERY" | "PICKUP">("PICKUP");
+  const [deliverySlot, setDeliverySlot] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [cap, setCap] = useState("");
@@ -131,6 +137,14 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
 
   const validateStep2 = useCallback(() => {
     if (orderType === "DELIVERY") {
+      if (!isDeliveryOrderingAvailable(new Date())) {
+        setError(getDeliveryOrderingMessage(new Date()) ?? "Ordini consegna non disponibili.");
+        return false;
+      }
+      if (!deliverySlot.trim()) {
+        setError("Seleziona uno slot orario per la consegna.");
+        return false;
+      }
       const r = checkoutDeliverySchema.safeParse({ address, city, cap, deliveryNotes });
       if (!r.success) {
         setError(r.error.issues[0]?.message ?? "Controlla indirizzo");
@@ -139,7 +153,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
     }
     setError(null);
     return true;
-  }, [orderType, address, city, cap, deliveryNotes]);
+  }, [orderType, address, city, cap, deliveryNotes, deliverySlot]);
 
   const handleNext = async () => {
     if (step === "customer") {
@@ -181,9 +195,15 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
 
   const handleSubmit = async () => {
     if (!restaurant) return;
-    if (orderType === "DELIVERY" && (deliveryLat == null || deliveryLng == null)) {
-      setError("Verifica l'indirizzo di consegna prima di continuare.");
-      return;
+    if (orderType === "DELIVERY") {
+      if (deliveryLat == null || deliveryLng == null) {
+        setError("Verifica l'indirizzo di consegna prima di continuare.");
+        return;
+      }
+      if (!deliverySlot.trim()) {
+        setError("Seleziona uno slot orario per la consegna.");
+        return;
+      }
     }
     setError(null);
     setLoading(true);
@@ -194,9 +214,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
         body: JSON.stringify({
           restaurantId: restaurant.id,
           type: orderType,
+          source: "WEB",
           customerName: name,
           customerPhone: phone,
           customerEmail: email || null,
+          deliverySlot: orderType === "DELIVERY" ? deliverySlot || null : null,
           deliveryAddress: orderType === "DELIVERY" ? address : null,
           deliveryCity: orderType === "DELIVERY" ? city : null,
           deliveryCap: orderType === "DELIVERY" ? cap : null,
@@ -217,9 +239,9 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
           deliveryLng: orderType === "DELIVERY" ? deliveryLng ?? undefined : undefined,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? "Errore creazione ordine");
+        setError(typeof data?.error === "string" ? data.error : "Errore durante la creazione dell'ordine. Riprova.");
         return;
       }
       if (paymentMethod === "cash") {
@@ -232,15 +254,16 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId: data.orderId, amountCents: data.totalCents }),
       });
-      const intentData = await intentRes.json();
+      const intentData = await intentRes.json().catch(() => ({}));
       if (!intentRes.ok) {
-        setError(intentData.error ?? "Errore pagamento");
+        setError(typeof intentData?.error === "string" ? intentData.error : "Errore durante il pagamento. Riprova.");
         return;
       }
       localStorage.setItem("biga-payment-order-id", data.orderId);
       router.push(`/order/${data.orderId}/pay?client_secret=${encodeURIComponent(intentData.clientSecret)}`);
     } catch (e) {
-      setError("Errore di rete");
+      if (process.env.NODE_ENV === "development") console.error(e);
+      setError("Si è verificato un problema di connessione. Riprova tra qualche istante.");
     } finally {
       setLoading(false);
     }
@@ -360,10 +383,13 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => setOrderType("PICKUP")}
+                onClick={() => {
+                  setOrderType("PICKUP");
+                  setDeliverySlot("");
+                }}
                 className={`rounded-xl border-2 p-4 text-left ${orderType === "PICKUP" ? "border-primary bg-primary/5" : "border-border"}`}
               >
-                <span className="font-medium">Ritiro in negozio</span>
+                <span className="font-medium">Ritiro al ristorante</span>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {restaurant?.address}, {restaurant?.city}
                 </p>
@@ -381,6 +407,43 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
             </div>
             {orderType === "DELIVERY" && (
               <div className="space-y-3 pt-2">
+                {(() => {
+                  const slots = getAvailableDeliverySlots(new Date());
+                  const unavailable = !isDeliveryOrderingAvailable(new Date());
+                  const message = getDeliveryOrderingMessage(new Date());
+                  if (unavailable) {
+                    return (
+                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
+                        <p className="text-sm text-amber-800 dark:text-amber-200">{message}</p>
+                        {restaurant?.phone && (
+                          <a
+                            href={`tel:${restaurant.phone.replace(/\s/g, "")}`}
+                            className="mt-3 inline-block rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                          >
+                            Chiama il ristorante
+                          </a>
+                        )}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div>
+                      <label className="block text-sm font-medium">Slot orario consegna *</label>
+                      <select
+                        value={deliverySlot}
+                        onChange={(e) => setDeliverySlot(e.target.value)}
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2"
+                      >
+                        <option value="">Seleziona orario</option>
+                        {slots.map((s) => (
+                          <option key={s.value} value={s.value}>
+                            {s.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })()}
                 <div>
                   <label className="block text-sm font-medium">Indirizzo *</label>
                   <input
@@ -438,7 +501,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ restaurantS
             <button
               type="button"
               onClick={handleNext}
-              disabled={checkingAddress}
+              disabled={
+                checkingAddress ||
+                (orderType === "DELIVERY" && (!isDeliveryOrderingAvailable(new Date()) || !deliverySlot.trim()))
+              }
               className="w-full rounded-full bg-primary py-3 font-medium text-primary-foreground disabled:opacity-70"
             >
               {checkingAddress ? "Verifica indirizzo..." : "Continua"}
